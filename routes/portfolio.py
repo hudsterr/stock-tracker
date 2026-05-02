@@ -28,11 +28,10 @@ def add_to_portfolio(ticker:str, quantity:float, buy_price:float, db:Session=Dep
     db.refresh(holding)
     return {"message": f"{quantity} shares of {ticker.upper()} have been added to your portifolio at a buy price of {buy_price}.", "id": holding.id}
 
-#delete stock function here (takes in holding id and deletes it from portfolio)
-
 
 @router.delete("/portfolio/remove/{holding_id}")
 def remove_stock(holding_id:int, db:Session=Depends(get_db)):
+    """Deletes a stock holding from the portfolio based on the provided holding ID."""
     holding = db.query(models.Portfolio).filter(models.Portfolio.id == holding_id).first()
     if holding:
         db.delete(holding)
