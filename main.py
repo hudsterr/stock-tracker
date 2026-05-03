@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from database import engine
 import models
-from routes import portfolio, stock_ticker, news
+from routes import portfolio, stock_ticker, news, analysis
 
 
 #routing done for cleaner code structure
@@ -11,6 +11,8 @@ app = FastAPI()
 app.include_router(portfolio.router)
 app.include_router(stock_ticker.router)
 app.include_router(news.router)
+app.include_router(analysis.router)
+
 
 
 models.Base.metadata.create_all(bind=engine)
