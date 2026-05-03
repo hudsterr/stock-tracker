@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
+import yfinance as yf
 
 router = APIRouter()
 
@@ -18,6 +19,8 @@ def get_db():
 
 @router.post("/portfolio/add")
 def add_to_portfolio(ticker:str, quantity:float, buy_price:float, db:Session=Depends(get_db)):
+    """Adds a stock holding to the portfolio with the provided ticker, quantity, and buy price."""
+
     holding = models.Portfolio(
         ticker=ticker.upper(),
         quantity=quantity,
@@ -46,5 +49,22 @@ def remove_stock(holding_id:int, db:Session=Depends(get_db)):
 
 @router.get("/portfolio")
 def get_portfolio(db: Session = Depends(get_db)):
+    """Returns a list of all stock holdings in the portfolio, including current price and gain/loss information."""
     holdings = db.query(models.Portfolio).all()
-    return holdings
+    
+    result = []
+    for holding in holdings:
+        stock = yf.Ticker(holding.ticker)
+        current_price = stock.info.get("currentPrice", 0)
+        gain_loss = (current_price - holding.buy_price) * holding.quantity
+
+
+        result.append({
+            "id": holding.id,
+            "ticker": holding.ticker,
+            "quantity": holding.quantity,
+            "buy_price": holding.buy_price,
+            "current_price": current_price,
+            "gain_loss": gain_loss,
+        })
+    return result
