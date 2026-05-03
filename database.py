@@ -1,8 +1,4 @@
-
-
-#create database connection and session
-
-
+"""This module sets up the database connection and defines the base class for SQLAlchemy models in the stock tracker application."""
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker

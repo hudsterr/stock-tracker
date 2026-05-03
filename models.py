@@ -1,4 +1,4 @@
-#declaring tables for model
+"""This module defines the SQLAlchemy models for the stock tracker application, specifically the Portfolio model which represents a stock holding in the user's portfolio."""
 from database import Base
 from sqlalchemy import Column, Integer, String, Float
 

@@ -2,13 +2,15 @@ from fastapi import FastAPI
 import uvicorn
 from database import engine
 import models
-from routes import portfolio, stock_ticker
+from routes import portfolio, stock_ticker, news
+
 
 #routing done for cleaner code structure
 
 app = FastAPI()
 app.include_router(portfolio.router)
 app.include_router(stock_ticker.router)
+app.include_router(news.router)
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -16,8 +18,8 @@ models.Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Stock Tracker API!"}
-    return {"Made by Rdhster and Hudster"}
+    return {"message": "Welcome to the Stock Tracker API! - Made by Rdhster and Hudster"}
+    
 
 
 
