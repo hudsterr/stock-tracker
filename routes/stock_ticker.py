@@ -7,6 +7,7 @@ router = APIRouter()
 
 @router.get("/stock/{ticker}")
 def get_stock_price(ticker:str):
+    """Fetches the current price, P/E ratio, and short name of the specified stock ticker using the yfinance library."""
     stock = yf.Ticker(ticker)
     info = stock.info
     return {

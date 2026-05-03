@@ -1,10 +1,13 @@
 from fastapi import APIRouter
 import requests
 import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 router = APIRouter()
-
-NEWS_API_KEY = "2f6b8dbc7efd4349b6fa3bf24be3e6c0"
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 @router.get("/news/{ticker}")
 def get_stock_news(ticker:str):
