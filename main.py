@@ -3,11 +3,23 @@ import uvicorn
 from database import engine
 import models
 from routes import portfolio, stock_ticker, news, analysis
+from fastapi.middleware.cors import CORSMiddleware
+
+#CORS middleware to allow requests from frontend running on localhost:3000
+
 
 
 #routing done for cleaner code structure
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(portfolio.router)
 app.include_router(stock_ticker.router)
 app.include_router(news.router)

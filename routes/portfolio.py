@@ -39,7 +39,7 @@ def remove_stock(holding_id:int, db:Session=Depends(get_db)):
     if holding:
         db.delete(holding)
         db.commit()
-        db.refresh(holding)
+       
         return {"Alert": f"{holding.ticker.upper()} has been removed from your portfolio."}
     else:
         raise HTTPException(status_code=404, detail="Holding not found")    
