@@ -24,7 +24,7 @@ app.include_router(portfolio.router)
 app.include_router(stock_ticker.router)
 app.include_router(news.router)
 app.include_router(analysis.router)
-
+    
 
 
 models.Base.metadata.create_all(bind=engine)

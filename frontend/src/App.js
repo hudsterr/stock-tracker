@@ -5,10 +5,21 @@ const API = "http://127.0.0.1:8000";
 
 function App() {
   const [portfolio, setPortfolio] = useState([]);
+  const [ticker, setTicker] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [buyPrice, setBuyPrice] = useState("");
 
   const fetchPortfolio = async () => {
     const res = await axios.get(`${API}/portfolio`);
     setPortfolio(res.data);
+  };
+
+  const addStock = async () => {
+    await axios.post(`${API}/portfolio/add?ticker=${ticker}&quantity=${quantity}&buy_price=${buyPrice}`);
+    setTicker("");
+    setQuantity("");
+    setBuyPrice("");
+    fetchPortfolio();
   };
 
   const removeStock = async (id) => {
@@ -23,6 +34,14 @@ function App() {
   return (
     <div>
       <h1>Stock Portfolio Tracker</h1>
+
+      <div>
+        <input placeholder="Ticker" value={ticker} onChange={e => setTicker(e.target.value)} />
+        <input placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
+        <input placeholder="Buy Price" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} />
+        <button onClick={addStock}>Add Stock</button>
+      </div>
+
       <table border="1">
         <thead>
           <tr>
