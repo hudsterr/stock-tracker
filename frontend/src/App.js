@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiTrendingUp, FiTrendingDown, FiPlus, FiTrash2, FiActivity, FiSun, FiMoon } from "react-icons/fi";
+import Select from "react-select";
+import { US_TICKERS, PSX_TICKERS } from "./tickers";
 
 const API = "http://127.0.0.1:8000";
 
@@ -107,9 +109,7 @@ const getStyles = (dark) => `
     color: ${dark ? "#ffffff" : "#0f172a"};
   }
 
-  .logo span {
-    color: ${dark ? "#63ffb4" : "#0066ff"};
-  }
+  .logo span { color: ${dark ? "#63ffb4" : "#0066ff"}; }
 
   .logo-sub {
     font-size: 11px;
@@ -135,9 +135,7 @@ const getStyles = (dark) => `
     transition: all 0.2s;
   }
 
-  .mode-btn:hover {
-    background: ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"};
-  }
+  .mode-btn:hover { background: ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}; }
 
   .card {
     background: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.85)"};
@@ -162,6 +160,7 @@ const getStyles = (dark) => `
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
   }
 
   input, select {
@@ -286,7 +285,7 @@ const getStyles = (dark) => `
 
   .btn-remove {
     background: transparent;
-    border: 1px solid ${dark ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.2)"};
+    border: 1px solid rgba(239,68,68,0.2);
     color: #ef4444;
     padding: 6px 12px;
     border-radius: 8px;
@@ -387,13 +386,41 @@ const getStyles = (dark) => `
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .psx-warning {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(234,179,8,0.08);
+    border: 1px solid rgba(234,179,8,0.25);
+    color: #eab308;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 `;
+
+const tickerOptions = [
+  {
+    label: "🇺🇸 US Stocks",
+    options: US_TICKERS.map(t => ({ value: t, label: t, psx: false }))
+  },
+  {
+    label: "🇵🇰 PSX Stocks (Limited Data)",
+    options: PSX_TICKERS.map(t => ({ value: t, label: t, psx: true }))
+  }
+];
 
 export default function App() {
   const [dark, setDark] = useState(true);
   const [portfolio, setPortfolio] = useState([]);
   const [ticker, setTicker] = useState("");
+  const [psxWarning, setPsxWarning] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
   const [selectedTicker, setSelectedTicker] = useState("");
@@ -409,7 +436,7 @@ export default function App() {
   const addStock = async () => {
     if (!ticker || !quantity || !buyPrice) return;
     await axios.post(`${API}/portfolio/add?ticker=${ticker}&quantity=${quantity}&buy_price=${buyPrice}`);
-    setTicker(""); setQuantity(""); setBuyPrice("");
+    setTicker(""); setQuantity(""); setBuyPrice(""); setPsxWarning(false);
     fetchPortfolio();
   };
 
@@ -432,6 +459,49 @@ export default function App() {
 
   const totalGainLoss = portfolio.reduce((sum, h) => sum + h.gain_loss, 0);
 
+  const selectStyles = {
+    container: base => ({ ...base, flex: 1, minWidth: 180 }),
+    control: base => ({
+      ...base,
+      background: dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+      border: `1px solid ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+      borderRadius: 10,
+      boxShadow: "none",
+      minHeight: 44,
+      cursor: "pointer",
+    }),
+    menu: base => ({
+      ...base,
+      background: dark ? "#0f172a" : "#ffffff",
+      border: `1px solid ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+      borderRadius: 10,
+      zIndex: 99,
+    }),
+    groupHeading: base => ({
+      ...base,
+      color: dark ? "#475569" : "#94a3b8",
+      fontSize: 10,
+      letterSpacing: 2,
+      fontFamily: "'IBM Plex Mono', monospace",
+      padding: "8px 12px 4px",
+    }),
+    option: (base, state) => ({
+      ...base,
+      background: state.isFocused
+        ? dark ? "rgba(99,255,180,0.08)" : "rgba(0,102,255,0.08)"
+        : "transparent",
+      color: dark ? "#e2e8f0" : "#0f172a",
+      fontFamily: "'IBM Plex Mono', monospace",
+      fontSize: 13,
+      cursor: "pointer",
+    }),
+    singleValue: base => ({ ...base, color: dark ? "#e2e8f0" : "#0f172a", fontFamily: "'IBM Plex Mono', monospace", fontSize: 13 }),
+    placeholder: base => ({ ...base, color: dark ? "#334155" : "#94a3b8", fontSize: 14 }),
+    input: base => ({ ...base, color: dark ? "#e2e8f0" : "#0f172a" }),
+    indicatorSeparator: () => ({ display: "none" }),
+    dropdownIndicator: base => ({ ...base, color: dark ? "#334155" : "#94a3b8" }),
+  };
+
   return (
     <>
       <style>{getStyles(dark)}</style>
@@ -452,11 +522,29 @@ export default function App() {
         <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="card-title">Add Position</div>
           <div className="add-form">
-            <input placeholder="Ticker (e.g. AAPL)" value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} />
+            <Select
+              options={tickerOptions}
+              onChange={opt => {
+                setTicker(opt ? opt.value : "");
+                setPsxWarning(opt ? opt.psx : false);
+              }}
+              value={ticker ? { value: ticker, label: ticker } : null}
+              placeholder="Search ticker..."
+              isSearchable
+              styles={selectStyles}
+            />
             <input placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} type="number" />
             <input placeholder="Buy Price ($)" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} type="number" />
             <button className="btn-primary" onClick={addStock}><FiPlus /> Add Stock</button>
           </div>
+          <AnimatePresence>
+            {psxWarning && (
+              <motion.div className="psx-warning"
+                initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                ⚠️ PSX stocks may have limited data. Price and P&L may be unavailable or delayed.
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
