@@ -407,11 +407,11 @@ const getStyles = (dark) => `
 
 const tickerOptions = [
   {
-    label: "🇺🇸 US Stocks",
+    label: "US Stocks 🇺🇸",
     options: US_TICKERS.map(t => ({ value: t, label: t, psx: false }))
   },
   {
-    label: "🇵🇰 PSX Stocks (Limited Data)",
+    label: "PSX Stocks 🇵🇰 (Limited Data)",
     options: PSX_TICKERS.map(t => ({ value: t, label: t, psx: true }))
   }
 ];
@@ -532,6 +532,8 @@ export default function App() {
               placeholder="Search ticker..."
               isSearchable
               styles={selectStyles}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
             />
             <input placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} type="number" />
             <input placeholder="Buy Price ($)" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} type="number" />
