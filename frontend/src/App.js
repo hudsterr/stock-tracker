@@ -1,112 +1,205 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiTrendingUp, FiTrendingDown, FiPlus, FiTrash2, FiSearch, FiActivity } from "react-icons/fi";
+import { FiTrendingUp, FiTrendingDown, FiPlus, FiTrash2, FiActivity, FiSun, FiMoon } from "react-icons/fi";
 
 const API = "http://127.0.0.1:8000";
 
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap');
+function StockChartBackground({ dark }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const lines = Array.from({ length: 6 }, (_, i) => ({
+      points: Array.from({ length: 80 }, (_, j) => ({
+        x: (j / 79) * window.innerWidth,
+        y: window.innerHeight * 0.3 + i * 80 + Math.random() * 60,
+      })),
+      offset: i * 30,
+      speed: 0.3 + Math.random() * 0.3,
+    }));
+
+    let frame = 0;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      frame++;
+
+      lines.forEach((line) => {
+        line.points.forEach((pt, j) => {
+          if (j > 0) {
+            const wave = Math.sin((frame + line.offset + j * 5) * 0.015) * 20;
+            pt.y += (wave - pt.y * 0.001) * line.speed * 0.05;
+          }
+        });
+
+        ctx.beginPath();
+        ctx.moveTo(line.points[0].x, line.points[0].y);
+        line.points.forEach((pt, j) => {
+          if (j > 0) ctx.lineTo(pt.x, pt.y);
+        });
+
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        grad.addColorStop(0, dark ? "rgba(99,255,180,0)" : "rgba(0,120,255,0)");
+        grad.addColorStop(0.5, dark ? "rgba(99,255,180,0.15)" : "rgba(0,120,255,0.12)");
+        grad.addColorStop(1, dark ? "rgba(99,255,180,0)" : "rgba(0,120,255,0)");
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [dark]);
+
+  return (
+    <canvas ref={canvasRef} style={{
+      position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.6
+    }} />
+  );
+}
+
+const getStyles = (dark) => `
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #080c10;
-    color: #e8eaf0;
-    font-family: 'JetBrains Mono', monospace;
+    background: ${dark ? "#0a0e17" : "#f0f4ff"};
+    color: ${dark ? "#e2e8f0" : "#0f172a"};
+    font-family: 'Plus Jakarta Sans', sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
+    transition: background 0.4s, color 0.4s;
   }
 
   .app {
-    max-width: 1100px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 48px 24px;
+    padding: 40px 24px;
+    position: relative;
+    z-index: 1;
   }
 
-  .bg-grid {
-    position: fixed;
-    inset: 0;
-    background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 48px;
   }
 
-  .content { position: relative; z-index: 1; }
-
-  .header {
-    margin-bottom: 56px;
-  }
-
-  .header-tag {
-    font-size: 11px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: #00ff88;
-    margin-bottom: 12px;
-    font-weight: 500;
-  }
-
-  h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(36px, 6vw, 64px);
+  .logo {
+    font-size: 28px;
     font-weight: 800;
-    line-height: 1;
-    color: #ffffff;
-    letter-spacing: -2px;
+    letter-spacing: -1px;
+    color: ${dark ? "#ffffff" : "#0f172a"};
   }
 
-  h1 span { color: #00ff88; }
+  .logo span {
+    color: ${dark ? "#63ffb4" : "#0066ff"};
+  }
 
-  .section-title {
-    font-family: 'Syne', sans-serif;
+  .logo-sub {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: ${dark ? "#63ffb4" : "#0066ff"};
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .mode-btn {
+    background: ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"};
+    border: 1px solid ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"};
+    color: ${dark ? "#e2e8f0" : "#0f172a"};
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .mode-btn:hover {
+    background: ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"};
+  }
+
+  .card {
+    background: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.85)"};
+    border: 1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"};
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(12px);
+  }
+
+  .card-title {
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    color: #4a5568;
+    color: ${dark ? "#63ffb4" : "#0066ff"};
     margin-bottom: 20px;
+    font-family: 'IBM Plex Mono', monospace;
   }
 
   .add-form {
     display: flex;
     gap: 10px;
-    margin-bottom: 48px;
     flex-wrap: wrap;
   }
 
-  input {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #e8eaf0;
-    padding: 12px 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+  input, select {
+    background: ${dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)"};
+    border: 1px solid ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"};
+    color: ${dark ? "#e2e8f0" : "#0f172a"};
+    padding: 11px 16px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
     outline: none;
     flex: 1;
     min-width: 120px;
+    border-radius: 10px;
     transition: all 0.2s;
   }
 
-  input:focus {
-    border-color: #00ff88;
-    background: rgba(0,255,136,0.04);
-    box-shadow: 0 0 20px rgba(0,255,136,0.08);
+  input:focus, select:focus {
+    border-color: ${dark ? "#63ffb4" : "#0066ff"};
+    background: ${dark ? "rgba(99,255,180,0.05)" : "rgba(0,102,255,0.05)"};
   }
 
-  input::placeholder { color: #2d3748; }
+  input::placeholder { color: ${dark ? "#334155" : "#94a3b8"}; }
 
-  .btn-add {
-    background: #00ff88;
-    color: #080c10;
+  select option {
+    background: ${dark ? "#0a0e17" : "#ffffff"};
+    color: ${dark ? "#e2e8f0" : "#0f172a"};
+  }
+
+  .btn-primary {
+    background: ${dark ? "#63ffb4" : "#0066ff"};
+    color: ${dark ? "#0a0e17" : "#ffffff"};
     border: none;
-    padding: 12px 24px;
-    font-family: 'Syne', sans-serif;
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 1px;
+    font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -115,183 +208,195 @@ const styles = `
     white-space: nowrap;
   }
 
-  .btn-add:hover {
-    background: #00e87a;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(0,255,136,0.3);
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: ${dark ? "0 8px 24px rgba(99,255,180,0.25)" : "0 8px 24px rgba(0,102,255,0.25)"};
   }
 
-  .table-wrapper {
-    margin-bottom: 56px;
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  th {
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #2d3748;
-    padding: 0 16px 16px;
-    text-align: left;
-    font-weight: 500;
-  }
-
-  td {
-    padding: 16px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    font-size: 13px;
-  }
-
-  .ticker-cell {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: #ffffff;
-    letter-spacing: 1px;
-  }
-
-  .gain { color: #00ff88; }
-  .loss { color: #ff4466; }
-
-  .gain-cell {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
-  }
-
-  .btn-remove {
+  .btn-outline {
     background: transparent;
-    border: 1px solid rgba(255,68,102,0.3);
-    color: #ff4466;
-    padding: 6px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+    border: 1.5px solid ${dark ? "#63ffb4" : "#0066ff"};
+    color: ${dark ? "#63ffb4" : "#0066ff"};
+    padding: 11px 24px;
+    border-radius: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-outline:hover {
+    background: ${dark ? "rgba(99,255,180,0.08)" : "rgba(0,102,255,0.08)"};
+    transform: translateY(-2px);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: ${dark ? "#475569" : "#94a3b8"};
+    padding: 0 16px 14px;
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  td {
+    padding: 14px 16px;
+    border-top: 1px solid ${dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)"};
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  tr:hover td { background: ${dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"}; }
+
+  .ticker-badge {
+    background: ${dark ? "rgba(99,255,180,0.1)" : "rgba(0,102,255,0.08)"};
+    color: ${dark ? "#63ffb4" : "#0066ff"};
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-block;
+  }
+
+  .gain { color: #22c55e; }
+  .loss { color: #ef4444; }
+
+  .gain-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .gain-pill.up { background: rgba(34,197,94,0.12); color: #22c55e; }
+  .gain-pill.down { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+  .btn-remove {
+    background: transparent;
+    border: 1px solid ${dark ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.2)"};
+    color: #ef4444;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
     transition: all 0.2s;
   }
 
   .btn-remove:hover {
-    background: rgba(255,68,102,0.1);
-    border-color: #ff4466;
-    box-shadow: 0 0 16px rgba(255,68,102,0.2);
+    background: rgba(239,68,68,0.1);
+    border-color: #ef4444;
   }
 
   .empty-state {
     text-align: center;
-    padding: 48px;
-    color: #2d3748;
-    font-size: 13px;
-    border: 1px dashed rgba(255,255,255,0.06);
+    padding: 40px;
+    color: ${dark ? "#334155" : "#cbd5e1"};
+    font-size: 14px;
+    border: 1px dashed ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"};
+    border-radius: 12px;
   }
 
-  .analysis-section {
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 48px;
-  }
-
-  .search-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 32px;
-  }
-
-  .btn-analyze {
-    background: transparent;
-    border: 1px solid #00ff88;
-    color: #00ff88;
-    padding: 12px 24px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
+  .pnl-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    white-space: nowrap;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
   }
 
-  .btn-analyze:hover {
-    background: rgba(0,255,136,0.08);
-    box-shadow: 0 0 24px rgba(0,255,136,0.15);
+  .pnl-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
   }
 
-  .sentiment-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 28px;
-    margin-bottom: 24px;
+  .sentiment-box {
+    background: ${dark ? "rgba(99,255,180,0.04)" : "rgba(0,102,255,0.04)"};
+    border-left: 3px solid ${dark ? "#63ffb4" : "#0066ff"};
+    border-radius: 0 10px 10px 0;
+    padding: 20px 24px;
     line-height: 1.8;
     font-size: 14px;
-    color: #a0aec0;
-    border-left: 3px solid #00ff88;
+    color: ${dark ? "#94a3b8" : "#475569"};
+    margin-bottom: 20px;
   }
-
-  .news-list { display: flex; flex-direction: column; gap: 1px; }
 
   .news-item {
-    background: rgba(255,255,255,0.02);
-    padding: 16px 20px;
-    border-left: 2px solid rgba(255,255,255,0.06);
-    transition: all 0.2s;
-  }
-
-  .news-item:hover {
-    background: rgba(255,255,255,0.04);
-    border-left-color: #00ff88;
+    padding: 16px 0;
+    border-bottom: 1px solid ${dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)"};
   }
 
   .news-title {
-    color: #e8eaf0;
+    color: ${dark ? "#e2e8f0" : "#0f172a"};
     text-decoration: none;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 600;
     line-height: 1.5;
     display: block;
     margin-bottom: 6px;
+    transition: color 0.2s;
   }
 
-  .news-title:hover { color: #00ff88; }
+  .news-title:hover { color: ${dark ? "#63ffb4" : "#0066ff"}; }
 
   .news-meta {
     font-size: 11px;
-    color: #2d3748;
+    font-family: 'IBM Plex Mono', monospace;
+    color: ${dark ? "#334155" : "#94a3b8"};
     letter-spacing: 1px;
   }
 
   .loading {
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: #00ff88;
+    gap: 10px;
+    color: ${dark ? "#63ffb4" : "#0066ff"};
     font-size: 13px;
-    padding: 24px 0;
+    padding: 20px 0;
+    font-weight: 600;
   }
 
   .dot {
-    width: 6px;
-    height: 6px;
-    background: #00ff88;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
+    background: ${dark ? "#63ffb4" : "#0066ff"};
   }
 
-  tr:hover td { background: rgba(255,255,255,0.015); }
+  .search-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 `;
 
 export default function App() {
+  const [dark, setDark] = useState(true);
   const [portfolio, setPortfolio] = useState([]);
   const [ticker, setTicker] = useState("");
   const [quantity, setQuantity] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
-  const [searchTicker, setSearchTicker] = useState("");
+  const [selectedTicker, setSelectedTicker] = useState("");
   const [news, setNews] = useState([]);
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
@@ -314,11 +419,11 @@ export default function App() {
   };
 
   const analyzeStock = async () => {
-    if (!searchTicker) return;
+    if (!selectedTicker) return;
     setLoading(true); setNews([]); setAnalysis("");
-    const newsRes = await axios.get(`${API}/news/${searchTicker}`);
+    const newsRes = await axios.get(`${API}/news/${selectedTicker}`);
     setNews(newsRes.data.articles || []);
-    const analysisRes = await axios.get(`${API}/analysis/${searchTicker}`);
+    const analysisRes = await axios.get(`${API}/analysis/${selectedTicker}`);
     setAnalysis(analysisRes.data.sentiment || "");
     setLoading(false);
   };
@@ -329,82 +434,97 @@ export default function App() {
 
   return (
     <>
-      <style>{styles}</style>
-      <div className="bg-grid" />
-      <div className="app content">
+      <style>{getStyles(dark)}</style>
+      <StockChartBackground dark={dark} />
+      <div className="app">
 
-        <motion.div className="header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}>
-          <div className="header-tag">// AI-Powered</div>
-          <h1>Stock<br /><span>Tracker</span></h1>
-          {portfolio.length > 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-              style={{ marginTop: 16, fontSize: 13, color: totalGainLoss >= 0 ? "#00ff88" : "#ff4466" }}>
-              Total P&L: {totalGainLoss >= 0 ? "+" : ""}${totalGainLoss.toFixed(2)}
-            </motion.div>
-          )}
+        <motion.div className="topbar" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}>
+          <div>
+            <div className="logo">stock<span>r</span></div>
+            <div className="logo-sub">AI-POWERED PORTFOLIO</div>
+          </div>
+          <button className="mode-btn" onClick={() => setDark(!dark)}>
+            {dark ? <FiSun size={15} /> : <FiMoon size={15} />}
+            {dark ? "Light Mode" : "Dark Mode"}
+          </button>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-          <div className="section-title">// Add Position</div>
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <div className="card-title">Add Position</div>
           <div className="add-form">
-            <input placeholder="TICKER" value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} />
-            <input placeholder="QUANTITY" value={quantity} onChange={e => setQuantity(e.target.value)} type="number" />
-            <input placeholder="BUY PRICE" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} type="number" />
-            <button className="btn-add" onClick={addStock}><FiPlus /> ADD</button>
+            <input placeholder="Ticker (e.g. AAPL)" value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} />
+            <input placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} type="number" />
+            <input placeholder="Buy Price ($)" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} type="number" />
+            <button className="btn-primary" onClick={addStock}><FiPlus /> Add Stock</button>
           </div>
         </motion.div>
 
-        <motion.div className="table-wrapper" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-          <div className="section-title">// Portfolio</div>
-          {portfolio.length === 0 ? (
-            <div className="empty-state">No positions yet. Add your first stock above.</div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Ticker</th><th>Qty</th><th>Buy Price</th>
-                  <th>Current</th><th>P&L</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <AnimatePresence>
-                  {portfolio.map((h) => (
-                    <motion.tr key={h.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.3 }}>
-                      <td><span className="ticker-cell">{h.ticker}</span></td>
-                      <td>{h.quantity}</td>
-                      <td>${h.buy_price}</td>
-                      <td>${h.current_price}</td>
-                      <td>
-                        <div className={`gain-cell ${h.gain_loss >= 0 ? "gain" : "loss"}`}>
-                          {h.gain_loss >= 0 ? <FiTrendingUp /> : <FiTrendingDown />}
-                          {h.gain_loss >= 0 ? "+" : ""}${h.gain_loss}
-                        </div>
-                      </td>
-                      <td>
-                        <button className="btn-remove" onClick={() => removeStock(h.id)}>
-                          <FiTrash2 /> REMOVE
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <div className="card-title">Portfolio</div>
+          {portfolio.length > 0 && (
+            <div className="pnl-bar">
+              <span style={{ fontSize: 13, fontWeight: 600, color: dark ? "#64748b" : "#94a3b8" }}>Total P&L</span>
+              <span className="pnl-chip" style={{
+                background: totalGainLoss >= 0 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
+                color: totalGainLoss >= 0 ? "#22c55e" : "#ef4444"
+              }}>
+                {totalGainLoss >= 0 ? "+" : ""}${totalGainLoss.toFixed(2)}
+              </span>
+            </div>
           )}
+          <div style={{ marginTop: 20 }}>
+            {portfolio.length === 0 ? (
+              <div className="empty-state">No positions yet. Add your first stock above.</div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ticker</th><th>Qty</th><th>Buy Price</th>
+                    <th>Current</th><th>P&L</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {portfolio.map((h) => (
+                      <motion.tr key={h.id}
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 16 }}
+                        transition={{ duration: 0.25 }}>
+                        <td><span className="ticker-badge">{h.ticker}</span></td>
+                        <td>{h.quantity}</td>
+                        <td>${h.buy_price}</td>
+                        <td style={{ fontFamily: "'IBM Plex Mono', monospace" }}>${h.current_price}</td>
+                        <td>
+                          <span className={`gain-pill ${h.gain_loss >= 0 ? "up" : "down"}`}>
+                            {h.gain_loss >= 0 ? <FiTrendingUp size={12} /> : <FiTrendingDown size={12} />}
+                            {h.gain_loss >= 0 ? "+" : ""}${h.gain_loss}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn-remove" onClick={() => removeStock(h.id)}>
+                            <FiTrash2 size={12} /> Remove
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            )}
+          </div>
         </motion.div>
 
-        <motion.div className="analysis-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-          <div className="section-title">// AI Analysis</div>
+        <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <div className="card-title">AI Analysis</div>
           <div className="search-row">
-            <input placeholder="ENTER TICKER" value={searchTicker} onChange={e => setSearchTicker(e.target.value.toUpperCase())} />
-            <button className="btn-analyze" onClick={analyzeStock}><FiActivity /> ANALYZE</button>
+            <select value={selectedTicker} onChange={e => setSelectedTicker(e.target.value)}>
+              <option value="">Select a stock from your portfolio</option>
+              {portfolio.map(h => (
+                <option key={h.id} value={h.ticker}>{h.ticker}</option>
+              ))}
+            </select>
+            <button className="btn-outline" onClick={analyzeStock}><FiActivity /> Analyze</button>
           </div>
 
           {loading && (
@@ -420,29 +540,27 @@ export default function App() {
 
           <AnimatePresence>
             {analysis && (
-              <motion.div className="sentiment-card"
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div className="sentiment-box"
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {analysis}
               </motion.div>
             )}
           </AnimatePresence>
 
           {news.length > 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-              <div className="section-title" style={{ marginBottom: 12 }}>// Headlines</div>
-              <div className="news-list">
-                {news.map((article, i) => (
-                  <motion.div key={i} className="news-item"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.08 }}>
-                    <a href={article.url} target="_blank" rel="noreferrer" className="news-title">
-                      {article.title}
-                    </a>
-                    <div className="news-meta">{article.source} — {new Date(article.published).toLocaleDateString()}</div>
-                  </motion.div>
-                ))}
-              </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+              <div className="card-title" style={{ marginTop: 8 }}>Latest Headlines</div>
+              {news.map((article, i) => (
+                <motion.div key={i} className="news-item"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.07 }}>
+                  <a href={article.url} target="_blank" rel="noreferrer" className="news-title">
+                    {article.title}
+                  </a>
+                  <div className="news-meta">{article.source} — {new Date(article.published).toLocaleDateString()}</div>
+                </motion.div>
+              ))}
             </motion.div>
           )}
         </motion.div>
