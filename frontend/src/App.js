@@ -8,6 +8,10 @@ function App() {
   const [ticker, setTicker] = useState("");
   const [quantity, setQuantity] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
+  const [searchTicker, setSearchTicker] = useState("");
+  const [news, setNews] = useState([]);
+  const [analysis, setAnalysis] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchPortfolio = async () => {
     const res = await axios.get(`${API}/portfolio`);
@@ -26,6 +30,18 @@ function App() {
     await axios.delete(`${API}/portfolio/remove/${id}`);
     fetchPortfolio();
   };
+
+
+  const analyzeStock = async () => {
+    setLoading(true);
+    setNews([]);
+    setAnalysis("");
+    const newsRes = await axios.get(`${API}/news/${searchTicker}`);
+    setNews(newsRes.data.articles);
+    const analysisRes = await axios.get(`${API}/analysis/${searchTicker}`);
+    setAnalysis(analysisRes.data.sentiment);
+    setLoading(false);
+  }
 
   useEffect(() => {
     fetchPortfolio();
@@ -70,6 +86,29 @@ function App() {
           ))}
         </tbody>
       </table>
+
+
+
+      <h2>Stock Analysis</h2>
+      <div>
+        <input placeholder="Analyze Stock" value={searchTicker} onChange={e => setSearchTicker(e.target.value)} />
+        <button onClick={analyzeStock}>Analyze</button>
+
+      </div>
+      {loading && <p>Loading analysis...</p>}
+      {analysis && <p>Sentiment: {analysis}</p>}
+      {news.length > 0 && (
+        <div>
+          <h3>Related News</h3>
+          <ul>
+            {news.map((article, index) => (
+              <li key={index}>
+                <a href={article.url} target="_blank" rel="noopener noreferrer">{article.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
