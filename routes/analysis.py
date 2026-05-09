@@ -23,7 +23,7 @@ def analyze_stock(ticker:str):
     #headline of news articles related to ticker
     headlines = "\n".join([article.get("title") for article in articles])
 
-    prompt = f"Imagine you are a financial analyst. Analyze the stock {ticker}, using Black-Scholes pricer and Monte Carlo simulation to predict future price movements. Use historical data from the 1990s all the way to 2026 and onwards in order to predict future price movements. Only write 5 sentences MAX. Also at the end of the score, give it a sentiment score of either Bullish, Bearish or Neutral. Lastly, give the user insights on what decision would be optimal moving forward\n\nHeadlines:\n{headlines}"
+    prompt = f"Imagine you are a financial analyst. Analyze the stock {ticker}, using Black-Scholes pricer and Monte Carlo simulation to predict future price movements. Use historical data from the 1990s all the way to 2026 and onwards in order to predict future price movements. Only write 5 sentences MAX. Also at the end of the score, give it a sentiment score of either Bullish, Bearish or Neutral. Lastly, give the user insights on what decision would be optimal moving forward. Give your answer in bullet points and highlight the important aspects:\n\nHeadlines:\n{headlines}"
 
     response = client.chat.completions.create(
         model = "llama-3.3-70b-versatile",
