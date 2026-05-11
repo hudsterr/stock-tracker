@@ -15,4 +15,20 @@ def get_stock_price(ticker:str):
         "price":info.get("currentPrice"),
         "pe_ratio":info.get("trailingPE"),
      }
-        
+
+
+router.get("/stock/{ticker}/history")
+def get_stock_history(ticker:str):
+    """Fetches the historical price data for the specified stock ticker over the past month using the yfinance library."""
+    stock = yf.Ticker(ticker)
+    history = stock.history(period="1mo")
+    data = []
+    for date, row in history.iterrows():
+        data.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "price": row["Close"]
+        })
+    return {
+        "ticker": ticker.upper(),
+        "history": data
+    }

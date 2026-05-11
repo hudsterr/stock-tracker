@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FiSun, FiMoon, FiLogOut } from "react-icons/fi";
 
+
 export default function Navbar({ user, dark, setDark, onLogout }) {
   const location = useLocation();
 
@@ -10,6 +11,7 @@ export default function Navbar({ user, dark, setDark, onLogout }) {
     { path: "/portfolio", label: "Portfolio" },
     { path: "/insights", label: "Insights" },
     { path: "/contact", label: "Contact" },
+    { path: "/graph", label: "Graph" }
   ];
 
   return (
