@@ -1,19 +1,20 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiMail, FiGithub, FiLinkedin, FiSend } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { FiMail } from "react-icons/fi";
+import { FiLinkedin } from "react-icons/fi";
 
 export default function Contact({ dark }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
-
-  const handleSubmit = () => {
-    if (!name || !email || !message) return;
-    setSent(true);
-    setName(""); setEmail(""); setMessage("");
-    setTimeout(() => setSent(false), 4000);
-  };
+  const contacts = [
+    {
+      name: "Abdul Haadi Bin Sakibb",
+      email: "abdulhaadibinsakibb1234@gmail.com",
+      linkedin: "https://www.linkedin.com/in/abdul-haadi-bin-sakibb-627056358/",
+    },
+    {
+      name: "Areedah Rehman",
+      email: "areedahrehman06@gmail.com",
+      linkedin: "https://www.linkedin.com/in/areedah-rehman-212138361",
+    },
+  ];
 
   return (
     <>
@@ -47,12 +48,12 @@ export default function Contact({ dark }) {
           font-size: 13px;
           font-family: 'IBM Plex Mono', monospace;
           color: ${dark ? "#475569" : "#94a3b8"};
-          margin-bottom: 36px;
+          margin-bottom: 48px;
         }
 
         .contact-grid {
           display: grid;
-          grid-template-columns: 1fr 1.5fr;
+          grid-template-columns: 1fr 1fr;
           gap: 24px;
         }
 
@@ -60,191 +61,115 @@ export default function Contact({ dark }) {
           .contact-grid { grid-template-columns: 1fr; }
         }
 
-        .card {
+        .contact-card {
           background: ${dark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.85)"};
           border: 1px solid ${dark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"};
-          border-radius: 16px;
-          padding: 28px;
+          border-radius: 20px;
+          padding: 40px 32px;
           backdrop-filter: blur(12px);
-        }
-
-        .card-title {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          color: ${dark ? "#63ffb4" : "#0066ff"};
-          margin-bottom: 24px;
-          font-family: 'IBM Plex Mono', monospace;
-        }
-
-        .social-links {
           display: flex;
           flex-direction: column;
-          gap: 16px;
           align-items: center;
-          justify-content: center;
-          height: calc(100% - 48px);
+          gap: 12px;
+          transition: all 0.2s;
         }
 
-        .social-btn {
+        .contact-card:hover {
+          border-color: ${dark ? "rgba(99,255,180,0.2)" : "rgba(0,102,255,0.2)"};
+          transform: translateY(-2px);
+        }
+
+        .contact-name {
+          font-size: 18px;
+          font-weight: 700;
+          color: ${dark ? "#ffffff" : "#0f172a"};
+          margin-bottom: 8px;
+          text-align: center;
+        }
+
+        .contact-role {
+          font-size: 11px;
+          font-family: 'IBM Plex Mono', monospace;
+          color: ${dark ? "#63ffb4" : "#0066ff"};
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          margin-bottom: 32px;
+        }
+
+        .contact-icons {
+          display: flex;
+          gap: 32px;
+          justify-content: center;
+        }
+
+        .contact-icon-btn {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 100%;
-          padding: 32px;
-          border-radius: 16px;
-          border: 1px solid ${dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"};
-          background: transparent;
-          color: ${dark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)"};
+          width: 72px;
+          height: 72px;
+          border-radius: 20px;
+          background: ${dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"};
+          border: 1px solid ${dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"};
+          color: ${dark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)"};
           text-decoration: none;
-          transition: all 0.3s;
-          flex: 1;
+          transition: all 0.25s;
         }
 
-        .social-btn:hover {
+        .contact-icon-btn:hover {
           color: ${dark ? "#63ffb4" : "#0066ff"};
           border-color: ${dark ? "rgba(99,255,180,0.3)" : "rgba(0,102,255,0.3)"};
-          background: ${dark ? "rgba(99,255,180,0.04)" : "rgba(0,102,255,0.04)"};
-          transform: translateY(-4px);
-          box-shadow: ${dark ? "0 12px 40px rgba(99,255,180,0.1)" : "0 12px 40px rgba(0,102,255,0.1)"};
+          background: ${dark ? "rgba(99,255,180,0.06)" : "rgba(0,102,255,0.06)"};
+          transform: translateY(-3px);
+          box-shadow: ${dark ? "0 8px 24px rgba(99,255,180,0.1)" : "0 8px 24px rgba(0,102,255,0.1)"};
         }
 
-        .form-group { margin-bottom: 16px; }
-
-        .form-label {
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          color: ${dark ? "#475569" : "#94a3b8"};
-          font-family: 'IBM Plex Mono', monospace;
-          display: block;
-          margin-bottom: 8px;
-        }
-
-        .form-input {
-          width: 100%;
-          background: ${dark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)"};
-          border: 1px solid ${dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"};
-          color: ${dark ? "#e2e8f0" : "#0f172a"};
-          padding: 11px 16px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          outline: none;
-          border-radius: 10px;
-          transition: all 0.2s;
-        }
-
-        .form-input:focus {
-          border-color: ${dark ? "#63ffb4" : "#0066ff"};
-          background: ${dark ? "rgba(99,255,180,0.05)" : "rgba(0,102,255,0.05)"};
-        }
-
-        .form-input::placeholder { color: ${dark ? "#334155" : "#94a3b8"}; }
-
-        textarea.form-input {
-          resize: vertical;
-          min-height: 120px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .btn-primary {
-          background: ${dark ? "#63ffb4" : "#0066ff"};
-          color: ${dark ? "#0a0e17" : "#ffffff"};
-          border: none;
-          padding: 12px 24px;
-          border-radius: 10px;
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-weight: 700;
-          font-size: 14px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          transition: all 0.2s;
-          width: 100%;
-          justify-content: center;
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: ${dark ? "0 8px 24px rgba(99,255,180,0.25)" : "0 8px 24px rgba(0,102,255,0.25)"};
-        }
-
-        .success-msg {
-          text-align: center;
-          padding: 16px;
-          border-radius: 10px;
-          background: rgba(34,197,94,0.08);
-          border: 1px solid rgba(34,197,94,0.2);
-          color: #22c55e;
-          font-size: 14px;
-          font-weight: 600;
-          margin-top: 12px;
+        .divider {
+          width: 40px;
+          height: 2px;
+          background: ${dark ? "rgba(99,255,180,0.3)" : "rgba(0,102,255,0.3)"};
+          border-radius: 2px;
+          margin: 8px 0;
         }
       `}</style>
-      
+
       <div className="contact-wrap">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <div className="contact-heading">Contact</div>
-          <div className="contact-sub">// Get in touch or find me online</div>
+          <div className="contact-sub">// Get in touch with the team</div>
         </motion.div>
 
         <div className="contact-grid">
-          <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            style={{ display: "flex", flexDirection: "column" }}>
-            <div className="card-title">Find Me</div>
-            <div className="social-links">
-              <a
-                href="mailto:abdulhaadibinsakibb1234@gmail.com"
-                className="social-btn"
-              >
-                <FiMail size={64} strokeWidth={1} />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/abdul-haadi-bin-sakibb-627056358/"
-                target="_blank"
-                rel="noreferrer"
-                className="social-btn"
-              >
-                <FiLinkedin size={64} strokeWidth={1} />
-              </a>
-            </div>
-          </motion.div>
+          {contacts.map((contact, i) => (
+            <motion.div
+              key={i}
+              className="contact-card"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.15 }}>
 
-          <motion.div className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <div className="card-title">Send a Message</div>
+              <div className="contact-name">{contact.name}</div>
+              <div className="divider" />
+              <div className="contact-role">Developer</div>
 
-            <div className="form-group">
-              <label className="form-label">Name</label>
-              <input className="form-input" placeholder="Your name" value={name} onChange={e => setName(e.target.value)} />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Email</label>
-              <input className="form-input" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Message</label>
-              <textarea className="form-input" placeholder="What's on your mind?" value={message} onChange={e => setMessage(e.target.value)} />
-            </div>
-
-            <button className="btn-primary" onClick={handleSubmit}>
-              <FiSend size={14} /> Send Message
-            </button>
-
-            <AnimatePresence>
-              {sent && (
-                <motion.div className="success-msg"
-                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                  ✓ Message sent successfully!
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+              <div className="contact-icons">
+                <a
+                  href={`mailto:${contact.email}`}
+                  className="contact-icon-btn"
+                  title={contact.email}>
+                  <FiMail size={30} />
+                </a>
+                <a
+                  href={contact.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="contact-icon-btn"
+                  title="LinkedIn">
+                  <FiLinkedin size={30} />
+                </a>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </>

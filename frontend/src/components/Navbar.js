@@ -121,7 +121,14 @@ export default function Navbar({ user, dark, setDark, onLogout }) {
         </ul>
 
         <div className="nav-right">
-          {user?.picture && <img src={user.picture} alt="avatar" className="nav-avatar" />}
+          {user?.picture && (
+            <img
+              src={user.picture}
+              alt="avatar"
+              className="nav-avatar"
+              referrerPolicy="no-referrer"
+            />
+          )}
           <span className="nav-name">{user?.name?.split(" ")[0]}</span>
           <button className="nav-icon-btn" onClick={() => setDark(!dark)}>
             {dark ? <FiSun size={15} /> : <FiMoon size={15} />}
