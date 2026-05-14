@@ -17,8 +17,8 @@ def get_stock_price(ticker:str):
      }
 
 
-router.get("/stock/{ticker}/history")
-def get_stock_history(ticker:str):
+@router.get("/stock/{ticker}/history")
+def get_stock_history(ticker:str, period:str = "1mo"):
     """Fetches the historical price data for the specified stock ticker over the past month using the yfinance library."""
     stock = yf.Ticker(ticker)
     history = stock.history(period="1mo")

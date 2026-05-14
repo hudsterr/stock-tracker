@@ -7,6 +7,7 @@ import Portfolio from "./pages/Portfolio";
 import Insights from "./pages/Insights";
 import Contact from "./pages/Contact";
 import Navbar from "./components/Navbar";
+import Graph from "./pages/Graph";
 
 const CLIENT_ID = "1054854425510-0j8pm8dsth6nscljirjqg8ost6bo4p3t.apps.googleusercontent.com";
 
@@ -46,6 +47,11 @@ export default function App() {
             path="/contact"
             element={user ? <Contact dark={dark} /> : <Navigate to="/" />}
           />
+          <Route
+            path="/graph"
+            element={user ? <Graph dark={dark} /> : <Navigate to="/" />}
+          />
+          
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

@@ -17,26 +17,57 @@ const PERIODS = [
 ];
 
 function generateProjection(history, sentiment) {
-  if (!history.length) return [];
+
+
+  if (history.length < 2) return [];
+
   const last = history[history.length - 1];
   const lastPrice = last.price;
   const lastDate = new Date(last.date);
 
-  let growthRate = 0.001;
-  if (sentiment.toLowerCase().includes("bullish")) growthRate = 0.008;
-  else if (sentiment.toLowerCase().includes("bearish")) growthRate = -0.006;
+  // Calculate real log returns from full history
+  const logReturns = [];
+  for (let i = 1; i < history.length; i++) {
+    logReturns.push(Math.log(history[i].price / history[i - 1].price));
+  }
+
+  // Real mean daily return and standard deviation (volatility)
+  const mean = logReturns.reduce((a, b) => a + b, 0) / logReturns.length;
+  const variance = logReturns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / logReturns.length;
+  const stdDev = Math.sqrt(variance);
+
+  // Sentiment nudges the drift slightly
+  let sentimentBias = 0;
+  if (sentiment.toLowerCase().includes("bullish")) sentimentBias = 0.003;
+  else if (sentiment.toLowerCase().includes("bearish")) sentimentBias = -0.003;
+
+  // Box-Muller transform for normally distributed random numbers
+  function gaussianRandom() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
 
   const projection = [];
+  let price = lastPrice;
   for (let i = 1; i <= 14; i++) {
     const date = new Date(lastDate);
     date.setDate(date.getDate() + i);
+
+    // Geometric Brownian Motion step
+    const dailyReturn = mean + sentimentBias + stdDev * gaussianRandom();
+    price = parseFloat((price * Math.exp(dailyReturn)).toFixed(2));
+
     projection.push({
       date: date.toISOString().split("T")[0],
-      projected: parseFloat((lastPrice * Math.pow(1 + growthRate, i)).toFixed(2)),
+      projected: price,
     });
   }
   return projection;
 }
+  
+
 
 const CustomTooltip = ({ active, payload, label, dark }) => {
   if (active && payload && payload.length) {
@@ -338,8 +369,8 @@ export default function Graph({ dark }) {
                 </div>
               </div>
 
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              
+                <LineChart width="100%" height={400} data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke={dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)"}
@@ -385,7 +416,7 @@ export default function Graph({ dark }) {
                     connectNulls={false}
                   />
                 </LineChart>
-              </ResponsiveContainer>
+              
             </>
           )}
         </motion.div>
