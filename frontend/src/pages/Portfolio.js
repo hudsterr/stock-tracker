@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiTrendingUp, FiTrendingDown, FiPlus, FiTrash2 } from "react-icons/fi";
 import Select from "react-select";
 import { US_TICKERS, PSX_TICKERS } from "../tickers";
-
 const API = "http://127.0.0.1:8000";
 
 const tickerOptions = [

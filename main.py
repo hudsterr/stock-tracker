@@ -12,6 +12,7 @@ async def lifespan(app: FastAPI):
     # Startup: create one shared async HTTP client for all routes
     app.state.http_client = httpx.AsyncClient(timeout=10.0)
     models.Base.metadata.create_all(bind=engine)
+    
     yield
     # Shutdown: cleanly close the client
     await app.state.http_client.aclose()
